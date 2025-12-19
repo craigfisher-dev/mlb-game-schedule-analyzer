@@ -10,6 +10,31 @@ for each team based on tiebreaker implications and standings impact.
 FEATURES
 --------
 
+0. Game Value Weight Analysis (Pre-development)
+   
+   Goal: Use logistic regression to find validated weights for game importance.
+   
+   Concepts to Learn:
+   - Logistic Regression
+   - Features vs Target Variable
+   - Coefficients
+   - Training vs Test Data
+   - Precision & Recall
+   - P-value / Statistical Significance
+   
+   Steps:
+   a. Collect game data from close races (2022-2025)
+   b. Label each game:
+      - Features: division game?, intraleague?, second half?, September?
+      - Target: did game affect playoff outcome? (1/0)
+   c. Split data: Train on 2022-2024, Test on 2025
+   d. Run logistic regression → get coefficients
+   e. Validate: check precision/recall and p-values
+   f. Convert coefficients to 0-100 scale weights
+   
+   Output: Statistically validated weights for Game Value Calculation
+
+
 1. Team Selection
    - Selectbox dropdown with all 30 MLB teams
    - Shows team logo when selected along with team name in selectbox
@@ -82,7 +107,7 @@ GAME VALUE CALCULATION
 ----------------------
 Each game scored 0-100 based on tiebreaker impact.
 
-FACTORS TO CONSIDER (scoring TBD):
+FACTORS TO CONSIDER (weights determined by Feature 0 analysis):
    - Division vs Intraleague vs Interleague
    - Second half of season (after All-Star break)
    - Late September timing (for final tiebreak)
@@ -94,13 +119,13 @@ SCORE RANGES & COLORS (gradient):
    30-49:  Moderate       (Yellow)
    10-29:  Low            (Light Green)
    0-9:    Minimal        (Light Blue)
+   
+Note: Coefficients from Feature 0 regression will be scaled to fit this 0-100 range.
 
 COLOR DISPLAY:
    - Small colored circle in corner of each game slot
    - Keeps game info readable
    - Doesn't overwhelm the schedule view
-
-TODO: Figure out statistical approach for weighting tie breaker factors listed above
 
 
 TECH STACK
