@@ -24,6 +24,11 @@ FEATURES
    
    Steps:
    a. Collect game data from close races (2022-2025)
+   b. Define "mattered" labeling methodology:
+      - Identify teams in contention (made playoffs or within X games)
+      - Determine criteria for "game affected playoff outcome"
+      - Label each game: 1 = mattered, 0 = didn't matter
+      - TODO: Exact methodology needs to be worked out
    b. Label each game:
       - Features: division game?, intraleague?, second half?, September?
       - Target: did game affect playoff outcome? (1/0)
