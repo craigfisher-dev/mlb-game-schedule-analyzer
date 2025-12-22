@@ -1,0 +1,7 @@
+supabase
+streamlit
+python-dotenv
+statsapi
+pytest
+pandas
+numpy

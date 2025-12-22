@@ -30,7 +30,7 @@ FEATURES
       - Label each game: 1 = mattered, 0 = didn't matter
       - TODO: Exact methodology needs to be worked out
    b. Label each game:
-      - Features: division game?, intraleague?, second half?, September?
+      - Features: is_division_game?, is_intraleague?, is_second_half?, is_september?
       - Target: did game affect playoff outcome? (1/0)
    c. Split data: Train on 2022-2024, Test on 2025
    d. Run logistic regression → get coefficients
