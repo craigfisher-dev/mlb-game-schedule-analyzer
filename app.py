@@ -3,6 +3,8 @@ import time
 import os
 import logging
 import warnings
+import requests
+import json
 
 from dotenv import load_dotenv
 from supabase import create_client
@@ -10,6 +12,9 @@ import pandas
 import numpy
 import statsapi
 from concurrent.futures import ThreadPoolExecutor
+
+# To get team logos
+ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
 
 st.set_page_config("MLB Game Schedule Analyzer", layout="wide")
 
@@ -24,7 +29,26 @@ teams = ["Arizona Diamondbacks", "Athletics", "Atlanta Braves", "Baltimore Oriol
 def fetch_teams_data(teamId):
     return statsapi.schedule(season=2026,team=teamId)
 
-def teamRegularSeasonScheudle(teamScheudle):
+@st.cache_data(ttl=86400, show_spinner=False)
+def fetch_team_logos(teamId):
+    response = requests.get(ESPN_API_URL)
+    if response.status_code != 200:
+        print("Failed to fetch ESPN team logos")
+        return []
+    
+    data = response.json()
+
+    teams = data["sports"][0]["leagues"][0]["teams"]
+    
+    with open("Logo_Test.json", "w") as f:        
+        json.dump(teams[0]["team"]["logos"][0]["href"], f)
+
+        
+
+
+
+
+def team_Regular_Season_Scheudle(teamScheudle):
     newTeamScheudle = []
     for game in teamScheudle:
         if game["game_type"] == "R":
@@ -39,17 +63,23 @@ with st.sidebar:
         st.markdown("### 🔍 Team Search")
         teamName = st.selectbox("What team schedule would you like to loop up?", options=teams,index=None, placeholder="Pick a team")
         team = statsapi.lookup_team(teamName)
-        # Team id to be used to look up schedule
-        teamId = team[0]["id"]
-        st.write(teamId)
 
-        # Gets all games for the season preseason, regular season
-        teamScheudle = fetch_teams_data(teamId)
-        # Filter down to just be regular season
-        filteredScheudle = teamRegularSeasonScheudle(teamScheudle)
-        
-        # Testing to show first 10 games
-        # st.write(filteredScheudle[:10])
+        if team:
+            # Team id to be used to look up schedule
+            teamId = team[0]["id"]
+            st.write(teamId)
+
+            # Gets all games for the season preseason, regular season
+            teamScheudle = fetch_teams_data(teamId)
+            # Filter down to just be regular season
+            filteredScheudle = team_Regular_Season_Scheudle(teamScheudle)
+            
+            # Testing to show first 10 games
+            st.write(filteredScheudle[:1])
+
+            # Team logo displayed
+            fetch_team_logos(teamId)
+            
         
 
 # # Multithreading for API calls
