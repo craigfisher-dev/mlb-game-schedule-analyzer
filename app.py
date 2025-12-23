@@ -53,8 +53,8 @@ def fetch_all_schedules():
     # Fetch in parallel
     def fetch_one(data):
         name, team_id = data
-        schedules = statsapi.schedule(season=2026, team=team_id)
-        regular_season = team_regular_season_schedule(schedules)
+        season_schedule = statsapi.schedule(season=2026, team=team_id)
+        regular_season = team_regular_season_schedule(season_schedule)
         return (name, regular_season)
     
     # Fetch all 30 schedules in parallel (10 concurrent requests)
