@@ -45,10 +45,10 @@ def fetch_all_schedules():
     team_ids = []
 
     # Get all team IDs first
-    for team_name in teams:
-        team_info = statsapi.lookup_team(team_name)
-        if team_info:
-            team_ids.append((team_name, team_info[0]["id"]))
+    all_teams = statsapi.get('teams', {'sportId': 1})  # sportId 1 = MLB
+    team_ids = [(team['name'], team['id']) for team in all_teams['teams']]
+
+    # print(team_ids)
 
     # Fetch in parallel
     def fetch_one(data):
