@@ -21,6 +21,37 @@ st.set_page_config("MLB Game Schedule Analyzer", layout="wide")
 # Title
 st.markdown("<h1 style='text-align: center;'>MLB Game Schedule Analyzer</h1>", unsafe_allow_html=True)
 
+# Transforms a teams regular season schedule into 6 lists
+# [March/April, May, June, July, August, September]
+# Returns list: 
+def convert_schedule(regular_season_schedule):
+    new_month_schedule = [[], [], [], [], [], []]
+    for game in regular_season_schedule:
+
+        # Index 5:7 is the month in the date string
+        # Example: 'game_date': '2026-03-27'
+
+        # March/April   
+        if game["game_date"][5:7] == "03" or game["game_date"][5:7] == "04":
+            new_month_schedule[0].append(game)
+        # May
+        elif game["game_date"][5:7] == "05":
+            new_month_schedule[1].append(game)
+        # June
+        elif game["game_date"][5:7] == "06" :
+            new_month_schedule[2].append(game)
+        # July
+        elif game["game_date"][5:7] == "07":
+            new_month_schedule[3].append(game)
+        # August
+        elif game["game_date"][5:7] == "08":
+            new_month_schedule[4].append(game)
+        # September
+        elif game["game_date"][5:7] == "09":
+            new_month_schedule[5].append(game)
+
+    return new_month_schedule
+
 
 # Filters schedule to regular season games only 
 # (removes Spring Training, Post-Season, etc)
@@ -34,7 +65,7 @@ def team_regular_season_schedule(team_schedule):
 
 
 # Fetches all 30 team schedules,
-# returns dict: {team_name: [games...]}
+# Returns dict: {team_name: [games...]}
 @st.cache_data(ttl=86400, show_spinner=False)
 def fetch_all_schedules():
 
@@ -55,7 +86,11 @@ def fetch_all_schedules():
         # Sort games chronologically by datetime
         team_games_sorted = sorted(team_games, key=lambda game: game['game_datetime'])
         # Filter to regular season only, then store under team name
-        regular_season_schedule[name] = team_regular_season_schedule(team_games_sorted)
+        regular_season_schedule_games = team_regular_season_schedule(team_games_sorted)
+        regular_season_schedule[name] = {
+                                            "games": regular_season_schedule_games,
+                                            "by_month": convert_schedule(regular_season_schedule_games)
+                                        }
 
     return regular_season_schedule
 
@@ -106,7 +141,8 @@ with st.sidebar:
             # team_name to be used to look up schedule
             team_schedule = all_schedules[teamName]
 
-            st.write(team_schedule[:5])  # Show first 5
+            # st.write(team_schedule['games'][:5])  # Show first 5 games
+            st.write(team_schedule['by_month'][0][:2])   # Shows the first 2 March/April games
 
             # Team logo displayed
             
