@@ -44,23 +44,20 @@ def fetch_all_schedules():
     all_teams = statsapi.get('teams', {'sportId': 1})  # sportId 1 = MLB
     team_ids = [(team['name'], team['id']) for team in all_teams['teams']]
 
-    # print(team_ids)
+    # Fetch all_season_schedule
+    all_season_schedule = statsapi.schedule(season=2026)
 
-    # Fetch in parallel
-    def fetch_one(data):
-        name, team_id = data
-        season_schedule = statsapi.schedule(season=2026, team=team_id)
-        regular_season = team_regular_season_schedule(season_schedule)
-        return (name, regular_season)
-    
-    # Fetch all 30 schedules in parallel (10 concurrent requests)
-    # Results maintain original order of team_ids
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        results = list(executor.map(fetch_one, team_ids))
+    regular_season_schedule = {}
 
-    # st.write(dict(results))
+    for name, tid in team_ids:
+        # Filter: keep only games where this team is home OR away
+        team_games = [game for game in all_season_schedule if game['away_id'] == tid or game['home_id'] == tid]
+        # Sort games chronologically by datetime
+        team_games_sorted = sorted(team_games, key=lambda game: game['game_datetime'])
+        # Filter to regular season only, then store under team name
+        regular_season_schedule[name] = team_regular_season_schedule(team_games_sorted)
 
-    return dict(results)
+    return regular_season_schedule
 
 # Returns list of URLs for all MLB team logos (transparent)
 @st.cache_data(ttl=86400, show_spinner=False)
