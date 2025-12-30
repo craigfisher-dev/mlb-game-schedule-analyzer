@@ -6,6 +6,7 @@ import warnings
 import requests
 import json
 
+import calendar
 from dotenv import load_dotenv
 from supabase import create_client
 import pandas
@@ -17,9 +18,6 @@ from concurrent.futures import ThreadPoolExecutor
 ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
 
 st.set_page_config("MLB Game Schedule Analyzer", layout="wide")
-
-# Title
-st.markdown("<h1 style='text-align: center;'>MLB Game Schedule Analyzer</h1>", unsafe_allow_html=True)
 
 # Transforms a teams regular season schedule into 6 lists
 # [March/April, May, June, July, August, September]
@@ -127,16 +125,22 @@ with st.spinner("Loading..."):
 
 
 # Shows the links collected from ESPNs API
-st.write(team_logos)
+# st.write(team_logos)
 
+# This renders in the sidebar, even though it's not in a "with st.sidebar:" block
+# Dropdown options (team names) pulled from schedule data (sorted A-Z)
+st.sidebar.markdown("### 🔍 Team Search")
+teamName = st.sidebar.selectbox("What team schedule would you like to look up?", options=sorted(all_schedules.keys()),index=None, placeholder="Pick a team")
+
+# Title get replaced when team is selected
+if teamName:
+    st.markdown(f"<h1 style='text-align: center;'>{teamName} 2026 Schedule</h1>", unsafe_allow_html=True)
+else:
+    st.markdown("<h1 style='text-align: center;'>MLB Game Schedule Analyzer</h1>", unsafe_allow_html=True)
 
 # In the sidebar
 with st.sidebar:
     with st.container():
-        st.markdown("### 🔍 Team Search")
-        # Dropdown options (team names) pulled from schedule data (sorted A-Z)
-        teamName = st.selectbox("What team schedule would you like to look up?", options=sorted(all_schedules.keys()),index=None, placeholder="Pick a team")
-
         if teamName:
             # team_name to be used to look up schedule
             team_schedule = all_schedules[teamName]
@@ -147,4 +151,4 @@ with st.sidebar:
             # Team logo displayed
             
 
-
+# Main Page
