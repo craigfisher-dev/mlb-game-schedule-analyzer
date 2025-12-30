@@ -17,6 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 # ESPN API for team logos
 ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
 
+CURRENT_YEAR = 2026
+
 st.set_page_config("MLB Game Schedule Analyzer", layout="wide")
 
 # Transforms a teams regular season schedule into 6 lists
@@ -74,7 +76,7 @@ def fetch_all_schedules():
     team_ids = [(team['name'], team['id']) for team in all_teams['teams']]
 
     # Fetch all_season_schedule
-    all_season_schedule = statsapi.schedule(season=2026)
+    all_season_schedule = statsapi.schedule(season=CURRENT_YEAR)
 
     regular_season_schedule = {}
 
@@ -134,7 +136,7 @@ teamName = st.sidebar.selectbox("What team schedule would you like to look up?",
 
 # Title get replaced when team is selected
 if teamName:
-    st.markdown(f"<h1 style='text-align: center;'>{teamName} 2026 Schedule</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: center;'>{teamName} {CURRENT_YEAR} Schedule</h1>", unsafe_allow_html=True)
 else:
     st.markdown("<h1 style='text-align: center;'>MLB Game Schedule Analyzer</h1>", unsafe_allow_html=True)
 
@@ -152,3 +154,46 @@ with st.sidebar:
             
 
 # Main Page
+
+# Testing calendar import
+# st.write(calendar.monthcalendar(CURRENT_YEAR, 3))
+
+# Calendar is broken up into 2 rows, 3 columns
+# [March/April, May, June]
+# [July, August, September]
+
+c1, c2, c3  = st.columns(3)
+c4, c5, c6  = st.columns(3)
+
+with st.container():
+    c1.markdown(f"<h3 style='text-align: center;'>March/April</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    # Needs to be both march and april right now its just april
+    march_april = calendar.month(CURRENT_YEAR, 4)
+    c1.code(march_april, language=None, width="content")
+
+    c2.markdown(f"<h3 style='text-align: center;'>May</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    may = calendar.month(CURRENT_YEAR, 5)
+    c2.code(may, language=None, width="content")
+
+    c3.markdown(f"<h3 style='text-align: center;'>June</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    june = calendar.month(CURRENT_YEAR, 6)
+    c3.code(june, language=None, width="content")
+
+with st.container():
+    c4.markdown(f"<h3 style='text-align: center;'>July</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    july = calendar.month(CURRENT_YEAR, 7)
+    c4.code(july, language=None, width="content")
+
+    c5.markdown(f"<h3 style='text-align: center;'>August</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    august = calendar.month(CURRENT_YEAR, 8)
+    c5.code(august, language=None, width="content")
+
+    c6.markdown(f"<h3 style='text-align: center;'>September</h3>", unsafe_allow_html=True)
+    # PlaceHolder Calendar Month - Will be replaced with real one after it is implemented
+    september = calendar.month(CURRENT_YEAR, 9)
+    c6.code(september, language=None, width="content")
