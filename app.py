@@ -312,13 +312,18 @@ def render_month_calendar_html(month_data):
 
                 if logo_url:
                     html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
-                        <div style='text-align:left; font-size:9px; color:#888;'>{day_num}</div>
-                        {is_home}<img src='{logo_url}' width='20' title='{is_home + opponent}'>
+                        <div style='display:flex; justify-content:space-between; font-size:9px; color:#888;'>
+                            <span>{day_num}</span>
+                            <span>{is_home}</span>
+                        </div>
+                        <img src='{logo_url}' width='20' title='{opponent}'>
                     </td>"""
                 else:
                     html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
-                        <div style='text-align:left; font-size:9px; color:#888;'>{day_num}</div>
-                        {is_home + opponent[:3]}
+                        <div style='display:flex; justify-content:space-between; font-size:9px; color:#888;'>
+                            <span>{day_num}</span>
+                            <span>{is_home}</span>
+                        </div>
                     </td>"""
             else:
                 # No game - just show day number
