@@ -279,8 +279,8 @@ def print_team_calendar(teamName):
     return team_calendar
 
 # Testing print_team_calendar
-print()
-print(print_team_calendar(teamName))
+# if teamName:
+#     print(print_team_calendar(teamName))
 
 
 
