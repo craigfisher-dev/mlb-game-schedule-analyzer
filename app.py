@@ -157,16 +157,17 @@ def process_month(month_calendar, month_games, teamName):
 
     while left_ptr < len(month_flat):
         if month_flat[left_ptr] == 0:
-            month_flat[left_ptr] = (-1, None)  # Padding day
+            month_flat[left_ptr] = (-1, None, None)  # Padding day
             left_ptr += 1
 
         elif right_ptr < len(month_games) and month_flat[left_ptr] == int(month_games[right_ptr]["game_date"][8:10]):
             home_team = month_games[right_ptr]["home_name"]
             away_team = month_games[right_ptr]["away_name"]
             teamPlaying = away_team if teamName == home_team else home_team
+            is_home = True if teamName == home_team else False
 
             day_num = month_flat[left_ptr]
-            month_flat[left_ptr] = (day_num, teamPlaying)  # (day, opponent)
+            month_flat[left_ptr] = (day_num, teamPlaying, is_home)  # (day, opponent, is_home)
             
             # Skip any additional games on the same day (doubleheaders)
             current_date = month_games[right_ptr]["game_date"]
@@ -177,7 +178,7 @@ def process_month(month_calendar, month_games, teamName):
             left_ptr += 1
         else:
             day_num = month_flat[left_ptr]
-            month_flat[left_ptr] = (day_num, None)  # No game
+            month_flat[left_ptr] = (day_num, None, None)  # No game
             left_ptr += 1
 
     # Reshape back to 2D
@@ -189,12 +190,12 @@ def trim_empty_weeks(month_data, trim_start=False, trim_end=False):
     
     # Trim leading weeks with no games
     if trim_start:
-        while result and all(opponent is None for day_num, opponent in result[0]):
+        while result and all(opponent is None for day_num, opponent, is_home in result[0]):
             result = result[1:]
     
     # Trim trailing weeks with no games
     if trim_end:
-        while result and all(opponent is None for day_num, opponent in result[-1]):
+        while result and all(opponent is None for day_num, opponent, is_home in result[-1]):
             result = result[:-1]
     
     return result
@@ -227,11 +228,11 @@ def print_team_calendar(teamName):
     if march_games and march_processed:
         first_game_day = int(march_games[0]["game_date"][8:10])
         new_first_week = []
-        for day_num, opponent in march_processed[0]:
+        for day_num, opponent, is_home in march_processed[0]:
             if day_num != -1 and day_num < first_game_day:
-                new_first_week.append((-1, None))
+                new_first_week.append((-1, None, None))
             else:
-                new_first_week.append((day_num, opponent))
+                new_first_week.append((day_num, opponent, is_home))
         march_processed[0] = new_first_week
     
     # Merge last week of March with first week of April if they share a row
@@ -246,7 +247,7 @@ def print_team_calendar(teamName):
             april_day = first_april_week[i]
             
             if march_day[0] == -1 and april_day[0] == -1:
-                merged_week.append((-1, None))
+                merged_week.append((-1, None, None))
             elif march_day[0] == -1:
                 merged_week.append(april_day)
             elif april_day[0] == -1:
@@ -294,21 +295,30 @@ def render_month_calendar_html(month_data):
             continue
             
         html += "<tr>"
-        for day_num, opponent in week:
+        for day_num, opponent, home_check in week:
             if day_num == -1:
                 # Invisible cell
                 html += "<td style='border:none; background:none;'></td>"
             elif opponent:  # Game day
                 logo_url = team_logo_map.get(opponent, "")
+                is_home = home_check
+
+                # Home game
+                if is_home:
+                    is_home = ""
+                # Away game
+                else:
+                    is_home = "@"
+
                 if logo_url:
                     html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
                         <div style='text-align:left; font-size:9px; color:#888;'>{day_num}</div>
-                        <img src='{logo_url}' width='20' title='{opponent}'>
+                        {is_home}<img src='{logo_url}' width='20' title='{is_home + opponent}'>
                     </td>"""
                 else:
                     html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
                         <div style='text-align:left; font-size:9px; color:#888;'>{day_num}</div>
-                        {opponent[:3]}
+                        {is_home + opponent[:3]}
                     </td>"""
             else:
                 # No game - just show day number
