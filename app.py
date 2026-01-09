@@ -286,7 +286,7 @@ def print_team_calendar(teamName):
 
 
 def render_month_calendar_html(month_data):
-    html = "<table style='width:100%; text-align:center; border-collapse:collapse; border:none;'>"
+    html = "<table style='width:100%; table-layout:fixed; text-align:center; border-collapse:collapse; border:none;'>"
     html += "<tr><th style='border:none;'>Sun</th><th style='border:none;'>Mon</th><th style='border:none;'>Tue</th><th style='border:none;'>Wed</th><th style='border:none;'>Thu</th><th style='border:none;'>Fri</th><th style='border:none;'>Sat</th></tr>"
     
     for week in month_data:
@@ -298,36 +298,29 @@ def render_month_calendar_html(month_data):
         for day_num, opponent, home_check in week:
             if day_num == -1:
                 # Invisible cell
-                html += "<td style='border:none; background:none;'></td>"
+                html += "<td style='border:none; background:none; height:40px;'></td>"
             elif opponent:  # Game day
                 logo_url = team_logo_map.get(opponent, "")
-                is_home = home_check
-
-                # Home game
-                if is_home:
-                    is_home = ""
-                # Away game
-                else:
-                    is_home = "@"
+                
+                # Home = light blue, Away = light gray
+                bg_color = "#D7F4F5" if home_check else "#E8E8E8"
 
                 if logo_url:
-                    html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
-                        <div style='display:flex; justify-content:space-between; font-size:9px; color:#888;'>
-                            <span>{day_num}</span>
-                            <span>{is_home}</span>
+                    html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px; background-color:{bg_color};'>
+                        <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
+                        <div style='display:flex; justify-content:center; align-items:center; height:100%;'>
+                            <img src='{logo_url}' width='20' title='{opponent}'>
                         </div>
-                        <img src='{logo_url}' width='20' title='{opponent}'>
                     </td>"""
                 else:
-                    html += f"""<td style='padding:2px; vertical-align:top; border:1px solid #333;'>
-                        <div style='display:flex; justify-content:space-between; font-size:9px; color:#888;'>
-                            <span>{day_num}</span>
-                            <span>{is_home}</span>
-                        </div>
+                    html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px; background-color:{bg_color};'>
+                        <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
                     </td>"""
             else:
                 # No game - just show day number
-                html += f"<td style='padding:2px; vertical-align:top; border:1px solid #333;'><div style='text-align:left; font-size:9px; color:#888;'>{day_num}</div></td>"
+                html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px;'>
+                    <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
+                </td>"""
         html += "</tr>"
     
     html += "</table>"
