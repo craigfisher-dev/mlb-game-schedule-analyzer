@@ -17,6 +17,8 @@ from concurrent.futures import ThreadPoolExecutor
 # ESPN API for team logos
 ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams"
 
+ALLSTAR_LOGO = "https://img.mlbstatic.com/mlb-images/image/upload/t_w372/v1752722808/mlb/bmrn9jjalqrz4ujd3zg7.png"
+
 CURRENT_YEAR = 2026
 
 # Set Sunday as first day of week
@@ -81,6 +83,13 @@ def fetch_all_schedules():
     # Fetch all_season_schedule
     all_season_schedule = statsapi.schedule(season=CURRENT_YEAR)
 
+    # Grabs All-Star-Game date
+    allstar_date = None
+    for game in all_season_schedule:
+        if game.get("game_type") == "A":
+            allstar_date = game["game_date"]
+            break
+
     regular_season_schedule = {}
 
     for name, tid in team_ids:
@@ -92,7 +101,8 @@ def fetch_all_schedules():
         regular_season_schedule_games = team_regular_season_schedule(team_games_sorted)
         regular_season_schedule[name] = {
                                             "games": regular_season_schedule_games,
-                                            "by_month": convert_schedule(regular_season_schedule_games)
+                                            "by_month": convert_schedule(regular_season_schedule_games),
+                                            "allstar_date": allstar_date or f"{CURRENT_YEAR}-07-14"
                                         }
 
     return regular_season_schedule
@@ -148,7 +158,7 @@ else:
 
 
 # Helper function to process_month
-def process_month(month_calendar, month_games, teamName):
+def process_month(month_calendar, month_games, teamName, month_num, allstar_date=None):
     left_ptr = 0
     right_ptr = 0
     
@@ -178,7 +188,11 @@ def process_month(month_calendar, month_games, teamName):
             left_ptr += 1
         else:
             day_num = month_flat[left_ptr]
-            month_flat[left_ptr] = (day_num, None, None)  # No game
+            date_str = f"{CURRENT_YEAR}-{month_num:02d}-{day_num:02d}"
+            if allstar_date and date_str == allstar_date:
+                month_flat[left_ptr] = (day_num, "ALL_STAR", None)
+            else:
+                month_flat[left_ptr] = (day_num, None, None)  # No game
             left_ptr += 1
 
     # Reshape back to 2D
@@ -218,8 +232,8 @@ def print_team_calendar(teamName):
     march = calendar.monthcalendar(year=CURRENT_YEAR, month=3)
     april = calendar.monthcalendar(year=CURRENT_YEAR, month=4)
     
-    march_processed = process_month(march, march_games, teamName)
-    april_processed = process_month(april, april_games, teamName)
+    march_processed = process_month(march, march_games, teamName, 3)
+    april_processed = process_month(april, april_games, teamName, 4)
     
     # Only trim start of March
     march_processed = trim_empty_weeks(march_processed, trim_start=True)
@@ -265,12 +279,16 @@ def print_team_calendar(teamName):
     else:
         march_april = march_processed + april_processed
 
+
+    # All star game in July
+    allstar_date = all_schedules[teamName]["allstar_date"]
+
     # Don't trim other months - just process them
-    may = process_month(calendar.monthcalendar(CURRENT_YEAR, 5), all_schedules[teamName]['by_month'][1], teamName)
-    june = process_month(calendar.monthcalendar(CURRENT_YEAR, 6), all_schedules[teamName]['by_month'][2], teamName)
-    july = process_month(calendar.monthcalendar(CURRENT_YEAR, 7), all_schedules[teamName]['by_month'][3], teamName)
-    august = process_month(calendar.monthcalendar(CURRENT_YEAR, 8), all_schedules[teamName]['by_month'][4], teamName)
-    september = process_month(calendar.monthcalendar(CURRENT_YEAR, 9), all_schedules[teamName]['by_month'][5], teamName)
+    may = process_month(calendar.monthcalendar(CURRENT_YEAR, 5), all_schedules[teamName]['by_month'][1], teamName, 5)
+    june = process_month(calendar.monthcalendar(CURRENT_YEAR, 6), all_schedules[teamName]['by_month'][2], teamName, 6)
+    july = process_month(calendar.monthcalendar(CURRENT_YEAR, 7), all_schedules[teamName]['by_month'][3], teamName, 7, allstar_date)
+    august = process_month(calendar.monthcalendar(CURRENT_YEAR, 8), all_schedules[teamName]['by_month'][4], teamName, 8)
+    september = process_month(calendar.monthcalendar(CURRENT_YEAR, 9), all_schedules[teamName]['by_month'][5], teamName, 9)
     
     # Only trim end of September (after season ends)
     september = trim_empty_weeks(september, trim_end=True)
@@ -299,6 +317,14 @@ def render_month_calendar_html(month_data):
             if day_num == -1:
                 # Invisible cell
                 html += "<td style='border:none; background:none; height:40px;'></td>"
+            elif opponent == "ALL_STAR":
+                # All-Star Game
+                html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px; background-color:#FFE066;'>
+                    <div style='position:absolute; top:2px; left:4px; font-size:10px; color:#888;'>{day_num}</div>
+                    <div style='display:flex; justify-content:center; align-items:center; height:100%;'>
+                        <img src='{ALLSTAR_LOGO}' width='24' title='All-Star Game'>
+                    </div>
+                </td>"""
             elif opponent:  # Game day
                 logo_url = team_logo_map.get(opponent, "")
                 
@@ -307,19 +333,19 @@ def render_month_calendar_html(month_data):
 
                 if logo_url:
                     html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px; background-color:{bg_color};'>
-                        <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
+                        <div style='position:absolute; top:2px; left:4px; font-size:10px; color:#888;'>{day_num}</div>
                         <div style='display:flex; justify-content:center; align-items:center; height:100%;'>
-                            <img src='{logo_url}' width='20' title='{opponent}'>
+                            <img src='{logo_url}' width='24' title='{opponent}'>
                         </div>
                     </td>"""
                 else:
                     html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px; background-color:{bg_color};'>
-                        <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
+                        <div style='position:absolute; top:2px; left:4px; font-size:10px; color:#888;'>{day_num}</div>
                     </td>"""
             else:
                 # No game - just show day number
                 html += f"""<td style='padding:2px; position:relative; border:1px solid #333; height:40px;'>
-                    <div style='position:absolute; top:2px; left:4px; font-size:9px; color:#888;'>{day_num}</div>
+                    <div style='position:absolute; top:2px; left:4px; font-size:10px; color:#888;'>{day_num}</div>
                 </td>"""
         html += "</tr>"
     
